@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<title>Spencer's Brainfuck Interpreter</title>
+
+	<link rel="stylesheet" type="text/css" href="styles.css" />
+	<script type="text/javascript" src="resources/script.js"></script>
+</head>
+
+<body>
+
+	<!-- Overlay to dim screen, and dialog for status updates -->
+	<div id="overlay">
+            <div id="dialog" class="dialog rounded">
+                <p id="updatetitle">Status Update</p>
+                <form>
+                    <textarea id="dialogText" class="rounded" onkeyup="keyUpHandler(event)"></textarea>
+                    </form>
+                    <p>Press enter to post</p>
+            </div>
+	</div>
+
+	<!--## Header (the top bar of the page) -->
+	<div id="header">
+            <!--## Header Container, to vertically align the 3 header divs (logo, search, account) -->
+            <div id="header-container">
+
+                    <!--## Logo image Pod -->
+                    <div id="logo">
+                        <h3>BRAIN FUCK!!!</h3>
+                    </div>
+            </div>
+	</div>
+
+
+	<!-- Main Content (lower part of page) -->
+	<div id="main-content">
+            <!-- Profile Pod -->
+            <div id="profile" class="rounded">
+                    <p>
+                    <textarea id="input" class="rounded"></textarea>
+                    <input id="submit_input" type="submit" class="rounded" value=" Run code! " onclick="BFI.interpret('input')" />
+                    </p>
+                    <p>
+                    <textarea id="output" class="rounded"></textarea>
+                    <input id="clear_output" type="submit" class="rounded" value="Clear" onclick="clearTextArea('output')"/>
+                    </p>
+                    <script type="text/javascript">
+                        BFI.initialize(10, 'output');
+                        //BFI.printCells();
+                    </script>
+            </div>
+	</div>
+
+	<div class="footer">
+            <p>&copy;Spencer Bartz 2015</p>
+            <p><a href="http://www.spencerbartz.com">spencerbartz.com</a></p>
+	</div>
+
+</body>
+</html>
