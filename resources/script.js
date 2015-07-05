@@ -23,14 +23,27 @@ window.BFI = (new (function(window, undefined) {
 	win      = window,
 	doc      = win.document,
         outputArea = null,
-        contextStack = [],
+        stack = [],
         support  = true,
-        debugStr = "",
-        bfSymbols = [">", "<", ".", ",", "+", "-", "[", "]"]
+        bfSymbols = [">", "<", ".", ",", "+", "-", "[", "]", "#"],
+        curChar = "",
+        curCharPos = 0,
+        inputText = "",
+        curInputLine = 0,
+        jump = false
         
 	self.initialize = function(totalCells, outputEl) {
             cells = Array.apply(null, Array(totalCells)).map(Number.prototype.valueOf,0);
             outputArea = document.getElementById(outputEl);
+        },
+        
+        self.debug = function() {
+            self.printCells();
+            self.printCurCell();
+            self.printCurChar();
+            self.printCurCharPos();
+            self.printStack();
+            self.printStackLength();
         },
         
         self.printCells = function() {
@@ -39,30 +52,103 @@ window.BFI = (new (function(window, undefined) {
             {
                 str += "" + cells[i] + " ";
             }
-            console.log(str);
+            console.log("CELLS: " + str);
+        },
+        
+        self.printCurChar = function() {
+            console.log("CUR_CHAR: " + curChar);    
+        },
+        
+        self.printCurCharPos = function() {
+            console.log("CUR_CHAR_POS: " + curCharPos);  
+        },
+        
+        self.printCurCell = function() {
+            console.log("CUR_CELL: " + currentCell);
+        },
+        
+        self.printStack = function() {
+            var str = ""
+            for (var i = 0; i < stack.length; i++)
+            {
+                str += "[" + stack[i]["current"] + "] ";
+            }
+            console.log("STACK_CONTENTS: " + str);
+        },
+        
+        self.printStackLength = function() {
+            console.log("STACK.LENGTH: " + stack.length);
         },
         
         self.interpret = function(textArea) {
-            text = document.getElementById(textArea).value;
-            parse(text);
+            reset(cells.length);
+            inputText = document.getElementById(textArea).value;
+            parse(inputText);
+        },
+        
+        self.testFind = function(text) {
+            return findMatchingBracePos( text);    
+        },
+        
+        //start at left brace and find matching right brace position
+        findMatchingBracePos = function(text) {      
+            var mystack = [];
+            var i = 0;
+        
+            mystack.push("[");
+        
+            while(mystack.length > 0 && i < text.length - 1)
+            {
+                i++;
+                if(text.charAt(i) === "[")
+                {
+                    mystack.push("[");
+                }
+                else if(text.charAt(i) === "]")
+                {
+                    mystack.pop();
+                }
+            }
+            
+            if(mystack.length > 0)
+            {
+                throw "Unmatched brace";
+            }
+            else
+            {
+                return i;
+            }
+        },
+        
+        reset = function(totalCells) {
+            cells = Array.apply(null, Array(totalCells)).map(Number.prototype.valueOf,0);
+            currentCell = 0,
+            stack = [],
+            debugStr = "",
+            curChar = "",
+            curCharPos = 0,
+            inputText = "",
+            curInputLine = 0
+            outputArea.value = "";
         },
         
         parse = function(text) {
-            for(var i = 0; i < text.length; i++)
-            {
-                curChar = text.charAt(i);
-                
-                if(curChar === " ")
+            debugStr = "";
+            var startPos = 0;
+            
+            for(curCharPos = 0; curCharPos < text.length; curCharPos++)
+            {   
+                curChar = text.charAt(curCharPos);
+                    
+                //Ignore all non brainfuck symbols for now
+                if(curChar === "\n")
                 {
+                    curInputLine++;
                     continue;
                 }
-                else if(curChar === "+")
+                else if(bfSymbols.indexOf(curChar) < 0)
                 {
-                    add();
-                }
-                else if(curChar === "-")
-                {
-                    sub();
+                    continue;
                 }
                 else if(curChar === ">")
                 {
@@ -72,28 +158,39 @@ window.BFI = (new (function(window, undefined) {
                 {
                     mvl();
                 }
-                else if(curChar === ".")
-                {
-                    put();
-                }
                 else if(curChar === ",")
                 {
                 
                 }
+                else if(curChar === ".")
+                {
+                    put();
+                }
                 else if(curChar === "[")
                 {
+                    lbr(text);
                 }
                 else if(curChar === "]")
                 {
+                    rbr();
                 }
-                
+                else if(curChar === "+")
+                {
+                    add();
+                }
+                else if(curChar === "-")
+                {
+                    sub();
+                }
+                else if(curChar === "#")
+                {
+                    dbg();
+                }
+
                 debugStr += curChar;
             }
-            console.log("DEBUG STRING: " + debugStr);
+            console.log("PARSE STRING: " + debugStr);
         },
-        
-        self.printOutput = function() {
-        }
         
         mvr = function() {
             currentCell++;
@@ -111,22 +208,40 @@ window.BFI = (new (function(window, undefined) {
             outputArea.value = outputArea.value + String.fromCharCode(cells[currentCell]);
         },
         
-        rbr = function() {
-            sub();
+        lbr = function(text) {
+            stack.push({lbrace: "[", current: curCharPos});
+            
+            //remaining input to read
+            var newContext = text.substring(curCharPos);
+            
+            var matchingRBPos = findMatchingBracePos(newContext);
+            
+            //isolate this block (cut off  brackets from the start and end of the string)
+            var newBlock = newContext.substring(1, matchingRBPos);
+            
+            while(cells[currentCell] > 0)
+            {
+                parse(newBlock);
+                cells[currentCell]--;
+            }
+            
+            curCharPos = matchingRBPos + (text.length - newContext.length);
         },
         
-        lbr = function() {
-            while(cells[currentCell] > 0) {
-                parse
-            }
-        },
+        rbr = function() {
+        }
         
         add = function() {
             cells[currentCell]++;
         },
         
         sub = function() {
-            cell[currentCell]--;
+            cells[currentCell]--;
+        },
+        
+        dbg = function() {
+            self.debug();
+            alert("Debug");
         }
         
 })(window));
