@@ -121,7 +121,7 @@ window.BFI = (new (function(window, undefined) {
         },
         
         reset = function(totalCells) {
-            cells = Array.apply(null, Array(totalCells)).map(Number.prototype.valueOf,0);
+            cells = Array.apply(null, Array(totalCells)).map(Number.prototype.valueOf, 0);
             currentCell = 0,
             stack = [],
             debugStr = "",
@@ -189,7 +189,7 @@ window.BFI = (new (function(window, undefined) {
 
                 debugStr += curChar;
             }
-            console.log("PARSE STRING: " + debugStr);
+            //console.log("PARSE STRING: " + debugStr);
         },
         
         mvr = function() {
@@ -210,6 +210,15 @@ window.BFI = (new (function(window, undefined) {
         
         lbr = function(text) {
             stack.push({lbrace: "[", current: curCharPos});
+            if (stack.length == 500)
+            {       
+                if (confirm("You're in a little deep, maybe an infinite loop. Would you like to exit?"))
+                {
+                    reset(10);
+                    curCharaPos = findMatchingBracePos(text.substr(stack.pop().current));
+                    return;
+                }
+            }
             
             //remaining input to read
             var newContext = text.substring(curCharPos);
@@ -219,10 +228,24 @@ window.BFI = (new (function(window, undefined) {
             //isolate this block (cut off  brackets from the start and end of the string)
             var newBlock = newContext.substring(1, matchingRBPos);
             
+            var loopCount = 0;
+            
             while(cells[currentCell] > 0)
             {
-                parse(newBlock);
-                cells[currentCell]--;
+                    loopCount++;
+                    parse(newBlock);
+                   // cells[currentCell]--;
+                if(loopCount % 500 == 0)
+                {
+                    self.debug();
+                    if (confirm("You're in a little deep (I know I tried!), maybe an infinite loop. Would you like to exit?"))
+                    {
+                        var skipAheadPos = findMatchingBracePos(text.substr(stack.pop().current));
+                        reset(10);
+                        curCharPos = skipAheadPos;
+                        return;
+                    }
+                }
             }
             
             curCharPos = matchingRBPos + (text.length - newContext.length);
