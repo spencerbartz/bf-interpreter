@@ -250,7 +250,8 @@ window.BFI = (new (function(window, undefined) {
                 }
                 else if(curChar === ",")
                 {
-                    showOverlay();
+                    //TODO: show lightbox with dialog and allow user input
+                    //showOverlay();
                 }
                 else if(curChar === ".")
                 {
