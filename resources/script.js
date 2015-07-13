@@ -90,6 +90,96 @@ window.BFI = (new (function(window, undefined) {
             return findMatchingBracePos( text);    
         },
         
+        getFactors = function(number) {
+            var factors = [];
+            
+            //find two numbers that will divide into "number"
+            for(var i = number - 1; i > 0; i--)
+            {
+                if(number % i === 0)
+                {
+                    //try to find the closest factor "f" such that f x i == number
+                    for(var j = i - 1; j > 0; j--)
+                    {
+                        if(number % j === 0 && (j * i === number))
+                        {
+                            factors.push([i, j, i - j]);
+                        }
+                    }
+                }
+            }
+            
+            if(factors.length > 0)
+            {
+                var minDiffCell = -1;
+                var min = number - 1; //upper bound of what the factors could possibly be
+                
+                for(var i = 0; i < factors.length; i++)
+                {
+                    if(factors[i][2] < min)
+                    {
+                        min = factors[i][2];
+                        minDiffCell = i;
+                    }
+                }
+                
+                return [factors[minDiffCell][0], factors[minDiffCell][1]];
+            }
+            else
+            {
+                return [number, 1];                
+            }
+        },
+        
+        self.asciiToBF = function(asciiText) {
+            var bfOutput = "[-]>[-]<\n";
+            var lastChar = "\0";
+            var codeDiff = 0; //difference in ascii code from last char read
+            
+            for(var i = 0; i < asciiText.length; i++)
+            {
+                codeDiff = asciiText.charCodeAt(i) - lastChar.charCodeAt(0);
+                
+                if(codeDiff === 0)
+                {
+                    bfOutput += ">.<\n";
+                    continue;
+                }
+                
+                var factors = getFactors(Math.abs(codeDiff));
+            
+                for(var j = 0; j < factors[0]; j++)
+                {
+                    if(codeDiff > 0)
+                    {
+                        bfOutput += "+";
+                    }
+                    else if(codeDiff < 0)
+                    {
+                        bfOutput += "-";
+                    }
+                }
+                
+                bfOutput += "[>";
+                
+                for(var j = 0; j < factors[1]; j++)
+                {
+                    if(codeDiff > 0)
+                    {
+                        bfOutput += "+";
+                    }
+                    else if(codeDiff < 0)
+                    {
+                        bfOutput += "-";
+                    }
+                }
+                
+                bfOutput += "<-]>.<\n";
+                lastChar = asciiText.charAt(i);
+            }
+            console.log(bfOutput);
+        },
+        
         //start at left brace and find matching right brace position
         findMatchingBracePos = function(text) {      
             var mystack = [];
@@ -160,7 +250,7 @@ window.BFI = (new (function(window, undefined) {
                 }
                 else if(curChar === ",")
                 {
-                
+                    showOverlay();
                 }
                 else if(curChar === ".")
                 {
@@ -189,7 +279,6 @@ window.BFI = (new (function(window, undefined) {
 
                 debugStr += curChar;
             }
-            //console.log("PARSE STRING: " + debugStr);
         },
         
         mvr = function() {
@@ -210,9 +299,9 @@ window.BFI = (new (function(window, undefined) {
         
         lbr = function(text) {
             stack.push({lbrace: "[", current: curCharPos});
-            if (stack.length == 500)
+            if(stack.length % 500 == 0)
             {       
-                if (confirm("You're in a little deep, maybe an infinite loop. Would you like to exit?"))
+                if (confirm("Your program is now 500 levels deep in scope. You may have an unmatched brace somewhere. Skip ahead?"))
                 {
                     reset(10);
                     curCharaPos = findMatchingBracePos(text.substr(stack.pop().current));
@@ -232,16 +321,17 @@ window.BFI = (new (function(window, undefined) {
             
             while(cells[currentCell] > 0)
             {
-                    loopCount++;
-                    parse(newBlock);
-                   // cells[currentCell]--;
+                loopCount++;
+                parse(newBlock);
+                
                 if(loopCount % 500 == 0)
                 {
                     self.debug();
-                    if (confirm("You're in a little deep (I know I tried!), maybe an infinite loop. Would you like to exit?"))
+                    if (confirm("Your program has executed the same loop 500 times. It may be a bug in your code. Skip ahead?"))
                     {
                         var skipAheadPos = findMatchingBracePos(text.substr(stack.pop().current));
                         reset(10);
+                        loopCount = 0;
                         curCharPos = skipAheadPos;
                         return;
                     }
@@ -269,6 +359,23 @@ window.BFI = (new (function(window, undefined) {
         
 })(window));
 
-function clearTextArea(textAreaEl) {
+function clearTextArea(textAreaEl)
+{
     var textArea = document.getElementById(textAreaEl).value = "";
 }
+
+/******************************************************************
+ * showOverlay(): Dims the screen for light box windows
+ * @return  void
+ *******************************************************************/
+function showOverlay()
+{
+    var overlay = $('#overlay');
+    overlay.fadeIn()
+}
+
+//TODO: Fix this so that things are initialized only if needed on the page
+$(document).ready(function() {
+    var overlay = $('#overlay');
+    overlay.css({'display' : 'none'});
+});

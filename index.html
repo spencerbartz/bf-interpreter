@@ -4,6 +4,7 @@
 	<title>Spencer's Brainfuck Interpreter</title>
 
 	<link rel="stylesheet" type="text/css" href="styles.css" />
+        <script type="text/javascript" src="resources/jquery-1.11.2.min.js"></script>
 	<script type="text/javascript" src="resources/script.js"></script>
 </head>
 
@@ -11,13 +12,7 @@
 
 	<!-- Overlay to dim screen, and dialog for status updates -->
 	<div id="overlay">
-            <div id="dialog" class="dialog rounded">
-                <p id="updatetitle">Status Update</p>
-                <form>
-                    <textarea id="dialogText" class="rounded" onkeyup="keyUpHandler(event)"></textarea>
-                    </form>
-                    <p>Press enter to post</p>
-            </div>
+
 	</div>
 
 	<!--## Header (the top bar of the page) -->
@@ -27,7 +22,7 @@
 
                     <!--## Logo image Pod -->
                     <div id="logo">
-                        <h3>BRAIN FUCK!!!</h3>
+                        <img class="rounded" src="resources/logo.jpg" />
                     </div>
             </div>
 	</div>
@@ -47,7 +42,6 @@
                     </p>
                     <script type="text/javascript">
                         BFI.initialize(10, 'output');
-                        //BFI.printCells();
                     </script>
             </div>
 	</div>
