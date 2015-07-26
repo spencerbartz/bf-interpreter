@@ -20,21 +20,20 @@ window.BFI = (new (function(window, undefined) {
 	self     = this,
 	cells    = null,
         currentCell = 0,
-	win      = window,
-	doc      = win.document,
-        outputArea = null,
+        intrpOutputArea = null,
+        convOutputArea = null,
         stack = [],
         support  = true,
         bfSymbols = [">", "<", ".", ",", "+", "-", "[", "]", "#"],
         curChar = "",
         curCharPos = 0,
         inputText = "",
-        curInputLine = 0,
-        jump = false
+        curInputLine = 0
         
-	self.initialize = function(totalCells, outputEl) {
+	self.initialize = function(totalCells, intrpOutputEl, convOutputEl) {
             cells = Array.apply(null, Array(totalCells)).map(Number.prototype.valueOf,0);
-            outputArea = document.getElementById(outputEl);
+            intrpOutputArea = _el(intrpOutputEl);
+            convOutputArea = _el(convOutputEl);
         },
         
         self.debug = function() {
@@ -131,7 +130,8 @@ window.BFI = (new (function(window, undefined) {
             }
         },
         
-        self.asciiToBF = function(asciiText) {
+        self.asciiToBF = function(convInput) {
+            var asciiText = _el(convInput).value;
             var bfOutput = "[-]>[-]<\n";
             var lastChar = "\0";
             var codeDiff = 0; //difference in ascii code from last char read
@@ -148,18 +148,13 @@ window.BFI = (new (function(window, undefined) {
                 
                 var factors = getFactors(Math.abs(codeDiff));
             
+                //Set loop counter for block
                 for(var j = 0; j < factors[0]; j++)
                 {
-                    if(codeDiff > 0)
-                    {
-                        bfOutput += "+";
-                    }
-                    else if(codeDiff < 0)
-                    {
-                        bfOutput += "-";
-                    }
+                    bfOutput += "+";
                 }
                 
+                //start loop block
                 bfOutput += "[>";
                 
                 for(var j = 0; j < factors[1]; j++)
@@ -177,7 +172,7 @@ window.BFI = (new (function(window, undefined) {
                 bfOutput += "<-]>.<\n";
                 lastChar = asciiText.charAt(i);
             }
-            console.log(bfOutput);
+            convOutputArea.value = bfOutput;
         },
         
         //start at left brace and find matching right brace position
@@ -219,7 +214,8 @@ window.BFI = (new (function(window, undefined) {
             curCharPos = 0,
             inputText = "",
             curInputLine = 0
-            outputArea.value = "";
+            intrpOutputArea.value = "";
+            convOutputArea.value = "";
         },
         
         parse = function(text) {
@@ -295,7 +291,7 @@ window.BFI = (new (function(window, undefined) {
         },
         
         put = function() {
-            outputArea.value = outputArea.value + String.fromCharCode(cells[currentCell]);
+            intrpOutputArea.value = intrpOutputArea.value + String.fromCharCode(cells[currentCell]);
         },
         
         lbr = function(text) {
@@ -362,7 +358,12 @@ window.BFI = (new (function(window, undefined) {
 
 function clearTextArea(textAreaEl)
 {
-    var textArea = document.getElementById(textAreaEl).value = "";
+    var textArea = _el(textAreaEl).value = "";
+}
+
+function _el(elem)
+{
+    return document.getElementById(elem);
 }
 
 /******************************************************************
@@ -374,8 +375,7 @@ function showOverlay()
     var overlay = $('#overlay');
     overlay.fadeIn()
 }
-
-//TODO: Fix this so that things are initialized only if needed on the page
+    
 $(document).ready(function() {
     var overlay = $('#overlay');
     overlay.css({'display' : 'none'});
