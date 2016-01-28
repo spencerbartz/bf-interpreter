@@ -339,7 +339,7 @@ window.BFI = (new (function(window, undefined) {
         },
         
         rbr = function() {
-        }
+        },
         
         add = function() {
             cells[currentCell]++;
